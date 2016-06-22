@@ -14,5 +14,6 @@ struct Grafo{
 };
 
 int main(){
+	
 	return 0;
 }
