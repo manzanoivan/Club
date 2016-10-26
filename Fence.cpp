@@ -47,7 +47,11 @@ typedef vector<Punto> Poligono;
 // Cerco convexo de un conjunto de puntos.
 Poligono CercoConvexo(vector<Punto> P){
     // Si ya esta ordenado, no usar sort.
-    //sort( P.begin(), P.end() );
+    sort( P.begin(), P.end() );
+    if( P.size() == 3 ){
+        P.push_back( P[0] );
+        return P;
+    }
     Poligono arriba, abajo;
     for (int i = 0; i < P.size(); ++i) {
         while (arriba.size() > 1) {
@@ -86,56 +90,66 @@ int N;
 double M;
 Poligono puntos;
 double constante;
-double minimo = 1<<30;
+double memo[600];
 
-void Bruta( int index, string cad ){
-	if( index >= N ){
-		double res = 0.0;
-		int tam = cad.size();
-		Poligono pols[9];
-		for( int i = 0; i < tam; i++ )
-			pols[ cad[i]-'0' ].push_back( puntos[ i ] );
-		
-		for( int i = 0; i < 9; i++ ){
-			tam = pols[i].size();
-			if( tam ){
-				res += constante;
-				pols[i] = CercoConvexo( pols[i] );
-				res += Perimetro( pols[i] );
-			}
-		}
-		minimo = min( minimo, res );
-		return;
-	}
-	for( int i = 0; i < N; i++ )
-		Bruta( index+1, cad+( (char)( i + '0' ) ) );
+double dp( int estado ){
+    if( memo[ estado ] != -1.0 ) return memo[ estado ];
+    if( estado == 0 ) return memo[estado] = 0.0;
+
+    vector< int > disponibles;
+    for( int i = 0; i < 9; i++ )
+        if( estado & ( 1 << i ) )
+            disponibles.push_back( i );
+
+    double minimo = 1 << 30;
+    int tam = disponibles.size();
+    int potencia = ( 1 << disponibles.size() );
+    
+    for( int i = 1; i < potencia; i++ ){
+        Poligono temp;
+        int copia = estado;
+        for( int j = 0; j < tam; j++ ){
+            if( i & ( 1 << j ) ){
+                temp.push_back( puntos[ disponibles[j] ] );
+                copia ^= (1 << disponibles[j]);
+            }
+        }
+
+        minimo = min( minimo, constante + Perimetro( CercoConvexo( temp ) ) + dp( copia ) );
+    }
+    return memo[estado] = minimo;
+}
+
+void limpia(){
+    for( int i = 0; i < 600; i++ )
+        memo[i] = -1.0;
 }
 
 int main(){
-	double x, y;
-	int caso = 1;
-	cout << fixed << setprecision(2);
-	while( 1 ){
-		cin >> N >> M;
-		if( !N && !M ) break;
+    double x, y;
+    int caso = 1;
+    cout << fixed << setprecision(2);
+    while( 1 ){
+        cin >> N >> M;
+        if( !N && !M ) break;
 
-		puntos.clear();
-		minimo = 1<<30;
+        puntos.clear();
 
-		for( int i = 0; i < N; i++ ){
-			cin >> x >> y;
-			puntos.push_back( Punto(x, y) );
-		}
+        for( int i = 0; i < N; i++ ){
+            cin >> x >> y;
+            puntos.push_back( Punto(x, y) );
+        }
 
-		constante = M_PI * 2 * M;
-		sort( puntos.begin(), puntos.end() );
-
-		Bruta( 0, "" );
-
-		cout << "Case "<< caso++ <<": length = " << minimo << '\n';
-	}
-	return 0;
+        constante = M_PI * 2.0 * M;
+        limpia();
+        cout << "Case " << caso++ <<": length = " << dp( (1 << N) - 1 ) << '\n';
+    }
+    return 0;
 }
+
+
+
+
 
 
 
