@@ -184,6 +184,10 @@ int main() {
             c = aristas[i].first;
             //cout << u << " " << v << " " << c << '\n';
             grafo.AgregarArista( u, v, 2, c );
+            
+            u = 2*aristas[i].second.first;
+            v = 2*aristas[i].second.second + 1;
+
             grafo.AgregarArista( v, u, 2, c );
         }
 
@@ -192,7 +196,7 @@ int main() {
             v = 2*i + 1;
             //cout << u << " " << v << " " << ( duplicado[i] ? "UNO" : "FINF" ) << '\n';
             grafo.AgregarArista( u, v, ( duplicado[i] ? 1 : 2 ), 0 );
-            grafo.AgregarArista( v, u, ( duplicado[i] ? 1 : 2 ), 0 );
+            //grafo.AgregarArista( v, u, ( duplicado[i] ? 1 : 2 ), 0 );
         }
 
         FlujoCosto flujo = grafo.FlujoCostoMin( 0, 2*(N - 1) + 1, 2 );
