@@ -2,47 +2,58 @@
 using namespace std;
 const int MAXN = 1009;
 const int INF = 10000009;
-#define Par pair< int, int >
 
 int N;
-Par mat[MAXN][MAXN];
-Par memo[MAXN][MAXN];
+int dos[MAXN][MAXN], cinco[MAXN][MAXN];
+int dp[MAXN][MAXN], dq[MAXN][MAXN];
 
 void limpia(){
 	for( int i = 0; i < MAXN; i++ )
-		for( int j = 0; j < MAXN; j++ )
-			memo[i][j] = Par( -1, -1 );
+		for( int j = 0; j < MAXN; j++ ){
+			dp[i][j] = -1;
+			dq[i][j] = -1;
+		}
 }
 
-Par dp( int i, int j ){
-	if( i == N || j == N ) return Par(INF,INF);
-	if( i == N-1 && j == N-1 ) return mat[i][j];
-	if( memo[i][j].first != -1 ) return memo[i][j];
+int dpDos( int i, int j ){
+	if( i == N || j == N ) return INF;
+	if( i == N-1 && j == N-1 ) return dos[i][j];
+	if( dp[i][j] != -1 ) return dp[i][j];
 	
-	Par A = Par( dp( i+1, j ).first + mat[i][j].first, dp( i+1, j ).second + mat[i][j].second);
-	Par B = Par( dp( i, j+1 ).first + mat[i][j].first, dp( i, j+1 ).second + mat[i][j].second );
-
-	int minA = min( A.first, A.second );
-	int minB = min( B.first, B.second );
-
-	if( minA < minB ) return memo[i][j] = A;
-	return memo[i][j] = B;
+	return dp[i][j] = min( dpDos(i+1, j), dpDos( i, j+1 ) ) + dos[i][j];
 }
 
-void reconstruye( int i, int j ){
+int dpCinco( int i, int j ){
+	if( i == N || j == N ) return INF;
+	if( i == N-1 && j == N-1 ) return cinco[i][j];
+	if( dq[i][j] != -1 ) return dq[i][j];
+	
+	return dq[i][j] = min( dpCinco(i+1, j), dpCinco( i, j+1 ) ) + cinco[i][j];
+}
+
+void reconstruyeDos( int i, int j ){
 	if( i == N || j == N ) return;
 	if( i == N-1 && j == N-1 ) return;
-	
-	Par A = Par( dp( i+1, j ).first + mat[i][j].first, dp( i+1, j ).second + mat[i][j].second);
-	Par B = Par( dp( i, j+1 ).first + mat[i][j].first, dp( i, j+1 ).second + mat[i][j].second );
-
-	if( A == memo[i][j] ){
+	if( dp[i][j] == dpDos(i+1, j) + dos[i][j] ){
 		cout << 'D';
-		reconstruye( i+1, j );
+		reconstruyeDos( i+1, j );
 	}
 	else{
 		cout << 'R';
-		reconstruye( i, j+1 );
+		reconstruyeDos( i, j+1 );
+	}
+}
+
+void reconstruyeCinco( int i, int j ){
+	if( i == N || j == N ) return;
+	if( i == N-1 && j == N-1 ) return;
+	if( dq[i][j] == dpCinco(i+1, j) + cinco[i][j] ){
+		cout << 'D';
+		reconstruyeCinco( i+1, j );
+	}
+	else{
+		cout << 'R';
+		reconstruyeCinco( i, j+1 );
 	}
 }
 
@@ -67,16 +78,16 @@ int main(){
 				continue;
 			}
 			while( num%2 == 0 ){
-				mat[i][j].first++;
+				dos[i][j]++;
 				num/= 2;
 			}
 			while( num%5 == 0 ){
-				mat[i][j].second++;
+				cinco[i][j]++;
 				num/= 5;
 			}
 		}
 
-	int res = min( dp( 0, 0 ).first, dp( 0, 0 ).second);
+	int res = min( dpDos(0, 0), dpCinco( 0, 0 ) );
 	
 	if( hayCero && res > 1 ){
 		cout << "1\n";
@@ -91,7 +102,10 @@ int main(){
 	}
 	else{
 		cout << res << '\n';
-		reconstruye(0, 0);
+		if( res == dpDos(0 , 0) )
+			reconstruyeDos(0, 0);
+		else
+			reconstruyeCinco(0, 0);
 	}
 	cout << '\n';
 
